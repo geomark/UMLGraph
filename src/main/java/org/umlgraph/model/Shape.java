@@ -16,7 +16,7 @@
  *
  */
 
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 import java.util.HashMap;
 import java.util.Locale;

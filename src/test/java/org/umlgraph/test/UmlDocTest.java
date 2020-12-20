@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.spi.ToolProvider;
 
 /**
  * UmlGraphDoc doclet regression tests
@@ -68,7 +69,7 @@ public class UmlDocTest {
 
     private static void runTest(List<String> differences) throws IOException {
 	File outFolder = new File(testDestFolder);
-	String[] options = new String[] { "-docletpath", "build", "-private", "-d",
+	String[] options = new String[] {"UMLGraph test","org.umlgraph.doclet.UmlGraphDoc" , "-docletpath", "build", "-private", "-d",
 		outFolder.getAbsolutePath(), "-sourcepath", testSourceFolder, "-compact",
 		"-subpackages", "gr.spinellis", "-inferrel", "-inferdep", "-qualify",
 		"-postfixpackage", "-collpackages", "java.util.*" };
@@ -150,8 +151,13 @@ public class UmlDocTest {
 	for (String o : options)
 	    pw.print(" " + o);
 	pw.println();
-	com.sun.tools.javadoc.Main.execute("UMLDoc test", pw, pw, pw,
-		doclet, options);
+
+	ToolProvider javadoc = ToolProvider.findFirst("javadoc").orElseThrow();
+
+	int result = javadoc.run(pw, pw, options);
+
+//	com.sun.tools.javadoc.Main.execute("UMLDoc test", pw, pw, pw,
+//		doclet, options);
 	System.exit(0);
     }
 

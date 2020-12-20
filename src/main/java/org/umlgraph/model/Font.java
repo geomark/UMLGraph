@@ -1,4 +1,4 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 /**
  * Class to represent a font for graphviz.

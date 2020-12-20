@@ -14,7 +14,7 @@
  *
  *
  */
-package org.umlgraph.doclet;
+package org.umlgraph.model.views;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -23,9 +23,16 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.RootDoc;
-import com.sun.javadoc.Tag;
+import com.sun.source.doctree.DocCommentTree;
+import com.sun.source.doctree.DocTree;
+import jdk.javadoc.doclet.DocletEnvironment;
+import org.umlgraph.model.OptionProvider;
+import org.umlgraph.model.Options;
+
+import org.umlgraph.model.matchers.*;
+import org.umlgraph.util.StringUtil;
+
+import javax.lang.model.element.TypeElement;
 
 /**
  * Contains the definition of a View. A View is a set of option overrides that
@@ -44,31 +51,37 @@ import com.sun.javadoc.Tag;
  */
 public class View implements OptionProvider {
     Map<ClassMatcher, List<String[]>> optionOverrides = new LinkedHashMap<ClassMatcher, List<String[]>>();
-    ClassDoc viewDoc;
+	TypeElement viewDoc;
     OptionProvider provider;
     List<String[]> globalOptions;
-    RootDoc root;
+	DocletEnvironment root;
 
     /**
      * Builds a view given the class that contains its definition
      */
-    public View(RootDoc root, ClassDoc c, OptionProvider provider) {
+    public View(DocletEnvironment root, TypeElement c, OptionProvider provider) {
 	this.viewDoc = c;
 	this.provider = provider;
 	this.root = root;
-	Tag[] tags = c.tags();
+
+		DocCommentTree tree = root.getDocTrees().getDocCommentTree(c);
+
+		List<DocTree> tags = (List<DocTree>) tree.getBlockTags();
+
+
 	ClassMatcher currMatcher = null;
 	// parse options, get the global ones, and build a map of the
 	// pattern matched overrides
 	globalOptions = new ArrayList<String[]>();
-	for (int i = 0; i < tags.length; i++) {
-	    if (tags[i].name().equals("@match")) {
-		currMatcher = buildMatcher(tags[i].text());
+	for (int i = 0; i < tags.size(); i++) {
+
+	    if (tags.get(i).getKind().tagName.equals("@match")) {
+		currMatcher = buildMatcher(tags.get(i).toString());
 		if(currMatcher != null) {
 		    optionOverrides.put(currMatcher, new ArrayList<String[]>());
 		}
-	    } else if (tags[i].name().equals("@opt")) {
-		String[] opts = StringUtil.tokenize(tags[i].text());
+	    } else if (tags.get(i).getKind().tagName.equals("@opt")) {
+		String[] opts = StringUtil.tokenize(tags.get(i).toString());
 		opts[0] = "-" + opts[0];
 		if (currMatcher == null) {
 		    globalOptions.add(opts);
@@ -94,7 +107,7 @@ public class View implements OptionProvider {
 	    if (strings[0].equals("class")) {
 		return new PatternMatcher(Pattern.compile(strings[1]));
 	    } else if (strings[0].equals("context")) {
-		return new ContextMatcher(root, Pattern.compile(strings[1]), getGlobalOptions(), 
+		return new ContextMatcher(root, Pattern.compile(strings[1]), getGlobalOptions(),
 			false);
 	    } else if (strings[0].equals("outgoingContext")) {
 		return new ContextMatcher(root, Pattern.compile(strings[1]), getGlobalOptions(), 
@@ -122,7 +135,7 @@ public class View implements OptionProvider {
     // OptionProvider methods
     // ---------------------------------------------------------------- 
 
-    public Options getOptionsFor(ClassDoc cd) {
+    public Options getOptionsFor(TypeElement cd) {
 	Options localOpt = getGlobalOptions();
 	overrideForClass(localOpt, cd);
 	localOpt.setOptions(cd);
@@ -145,12 +158,12 @@ public class View implements OptionProvider {
 	    go.setOption(opts);
 	}
 	if (!outputSet)
-	    go.setOption(new String[] { "output", viewDoc.name() + ".dot" });
+	    go.setOption(new String[] { "output", viewDoc.getSimpleName().toString() + ".dot" });
 	
 	return go;
     }
 
-    public void overrideForClass(Options opt, ClassDoc cd) {
+    public void overrideForClass(Options opt, TypeElement cd) {
 	provider.overrideForClass(opt, cd);
 	for (ClassMatcher cm : optionOverrides.keySet())
 	    if(cm.matches(cd))
@@ -167,7 +180,7 @@ public class View implements OptionProvider {
     }
 
     public String getDisplayName() {
-	return "view " + viewDoc.name();
+	return "view " + viewDoc.getSimpleName().toString();
     }
 
 }

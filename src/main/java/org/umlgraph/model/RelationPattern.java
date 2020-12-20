@@ -1,4 +1,4 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 /**
  * A map from relation types to directions

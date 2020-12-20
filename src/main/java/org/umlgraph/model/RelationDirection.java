@@ -1,4 +1,4 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 /**
  * The possibile directions of a relation given a reference class (used in

@@ -1,10 +1,15 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model.views;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.RootDoc;
+
+import jdk.javadoc.doclet.DocletEnvironment;
+import org.umlgraph.model.OptionProvider;
+import org.umlgraph.model.Options;
+import org.umlgraph.model.matchers.ContextMatcher;
+
+import javax.lang.model.element.TypeElement;
 
 /**
  * A view designed for UMLDoc, filters out everything that it's not directly
@@ -19,7 +24,7 @@ import com.sun.javadoc.RootDoc;
  */
 public class ContextView implements OptionProvider {
 
-    private ClassDoc cd;
+    private TypeElement cd;
     private ContextMatcher matcher;
     private Options globalOptions;
     private Options myGlobalOptions;
@@ -28,10 +33,12 @@ public class ContextView implements OptionProvider {
     private Options packageOptions;
     private static final String[] HIDE_OPTIONS = new String[] { "hide" };
 
-    public ContextView(String outputFolder, ClassDoc cd, RootDoc root, Options parent)
+    public ContextView(String outputFolder, TypeElement cd, DocletEnvironment root, Options parent)
 	    throws IOException {
 	this.cd = cd;
-	String outputPath = cd.containingPackage().name().replace('.', '/') + "/" + cd.name()
+
+
+	String outputPath = cd.getEnclosingElement().getSimpleName().toString().replace('.', '/') + "/" + cd.getSimpleName().toString()
 		+ ".dot";
 
 	// setup options statically, so that we won't need to change them so
@@ -57,9 +64,9 @@ public class ContextView implements OptionProvider {
 
     }
 
-    public void setContextCenter(ClassDoc contextCenter) {
+    public void setContextCenter(TypeElement contextCenter) {
 	this.cd = contextCenter;
-	String outputPath = cd.containingPackage().name().replace('.', '/') + "/" + cd.name()
+	String outputPath = cd.getEnclosingElement().getSimpleName().toString().replace('.', '/') + "/" + cd.getSimpleName().toString()
 		+ ".dot";
 	this.myGlobalOptions.setOption(new String[] { "output", outputPath });
 	matcher.setContextCenter(Pattern.compile(Pattern.quote(cd.toString())));
@@ -73,14 +80,15 @@ public class ContextView implements OptionProvider {
 	return myGlobalOptions;
     }
 
-    public Options getOptionsFor(ClassDoc cd) {
+    public Options getOptionsFor(TypeElement cd) {
 	Options opt;
-	if (globalOptions.matchesHideExpression(cd.qualifiedName())
-		|| !(matcher.matches(cd) || globalOptions.matchesIncludeExpression(cd.qualifiedName()))) {
+	if (globalOptions.matchesHideExpression(cd.getQualifiedName().toString())
+		|| !(matcher.matches(cd) || globalOptions.matchesIncludeExpression(cd.getQualifiedName().toString()))) {
 		opt = hideOptions;
 	} else if (cd.equals(this.cd)) {
 		opt = centerOptions;
-	} else if(cd.containingPackage().equals(this.cd.containingPackage())){
+	} else if(cd.getEnclosingElement().getSimpleName().toString()
+			.equals(this.cd.getEnclosingElement().getSimpleName().toString())){
 		opt = packageOptions;
 	} else {
 		opt = globalOptions;
@@ -94,7 +102,7 @@ public class ContextView implements OptionProvider {
 	Options opt;
 	if (!matcher.matches(name))
 		opt = hideOptions;
-	else if (name.equals(cd.name()))
+	else if (name.equals(cd.getSimpleName().toString()))
 		opt = centerOptions;
 	else
 		opt = globalOptions;
@@ -103,10 +111,10 @@ public class ContextView implements OptionProvider {
 	return optionClone;
     }
 
-    public void overrideForClass(Options opt, ClassDoc cd) {
+    public void overrideForClass(Options opt, TypeElement cd) {
 	opt.setOptions(cd);
-	if (opt.matchesHideExpression(cd.qualifiedName())
-		|| !(matcher.matches(cd) || opt.matchesIncludeExpression(cd.qualifiedName())))
+	if (opt.matchesHideExpression(cd.getQualifiedName().toString())
+		|| !(matcher.matches(cd) || opt.matchesIncludeExpression(cd.getQualifiedName().toString())))
 	    opt.setOption(HIDE_OPTIONS);
 	if (cd.equals(this.cd))
 	    opt.nodeFillColor = "lemonChiffon";

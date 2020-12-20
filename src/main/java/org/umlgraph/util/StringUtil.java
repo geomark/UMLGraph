@@ -17,7 +17,9 @@
  *
  */
 
-package org.umlgraph.doclet;
+package org.umlgraph.util;
+
+import org.umlgraph.model.Options;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -28,7 +30,7 @@ import java.util.regex.Pattern;
  * @version $Revision$
  * @author <a href="http://www.spinellis.gr">Diomidis Spinellis</a>
  */
-class StringUtil {
+public class StringUtil {
     /** Tokenize string s into an array */
     public static String[] tokenize(String s) {
 	ArrayList<String> r = new ArrayList<String>();

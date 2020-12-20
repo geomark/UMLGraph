@@ -17,7 +17,7 @@
  *
  */
 
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +28,7 @@ import java.util.Map;
  * @version $Revision$
  * @author <a href="http://www.spinellis.gr">Diomidis Spinellis</a>
  */
-class ClassInfo {
+public class ClassInfo {
     private static int classNumber;
     /** Alias name for the class */
     final String name;

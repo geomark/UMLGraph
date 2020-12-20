@@ -21,6 +21,7 @@ package org.umlgraph.test;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.spi.ToolProvider;
 
 public class RunOne {
 
@@ -40,20 +41,22 @@ public class RunOne {
     }
     
     public static void runView(String viewClass)  {
-	String[] options = new String[] { "-docletpath", "build", "-private", "-d",
+	String[] options = new String[] { "UMLGraph test","org.umlgraph.doclet.UmlGraphDoc" ,"-docletpath", "build", "-private", "-d",
 		testDestFolder, "-sourcepath", "testdata/java", "-subpackages",
 		"gr.spinellis", "-view", viewClass};
 	runDoclet(options);
     }
     
     public static void runSingleClass(String className) {
-	 String[] options = new String[] { "-docletpath", "build", "-hide", "Hidden",
+	 String[] options = new String[] { "UMLGraph test","org.umlgraph.doclet.UmlGraphDoc" ,"-docletpath", "build", "-hide", "Hidden",
 		    "-private", "-d", testDestFolder, "-output", className + ".dot", testSourceFolder + className + ".java"};
 	 runDoclet(options);
     }
 
     private static void runDoclet(String[] options) {
-	com.sun.tools.javadoc.Main.execute("UMLGraph test", pw, pw, pw, "org.umlgraph.doclet.UmlGraph", options);
+        ToolProvider javadoc = ToolProvider.findFirst("javadoc").orElseThrow();
+
+        int result = javadoc.run(pw, pw, options);
     }
 
     

@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.spi.ToolProvider;
 
 /**
  * UmlGraph regression tests
@@ -118,7 +119,7 @@ public class BasicTest {
 	    dotFile.delete();
 	    File refFile = new File(testRefFolder, outFileName);
 	    String javaPath = new File(testSourceFolder, javaFiles[i]).getAbsolutePath();
-	    String[] options = new String[] { "-docletpath", "build", "-hide", "Hidden",
+	    String[] options = new String[] { "UMLGraph test","org.umlgraph.doclet.UmlGraphDoc" ,"-docletpath", "build", "-hide", "Hidden",
 		    "-compact", "-private", "-d", testDestFolder, "-output", outFileName, javaPath };
 
 	    runDoclet(options);
@@ -128,8 +129,8 @@ public class BasicTest {
     }
 
     private static void runDoclet(String[] options) {
-	com.sun.tools.javadoc.Main.execute("UMLGraph test", pw, pw, pw,
-		"org.umlgraph.doclet.UmlGraph", options);
+		ToolProvider javadoc = ToolProvider.findFirst("javadoc").orElseThrow();
+		int result = javadoc.run(pw, pw, options);
     }
 
     private static void compare(List<String> differences, File dotFile, File refFile)

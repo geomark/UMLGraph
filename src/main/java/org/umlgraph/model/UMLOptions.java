@@ -1,4 +1,4 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 /**
  * Options for UMLGraph class diagram generation

@@ -1,4 +1,4 @@
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 /**
  * The type of relation that links two entities, and the graphviz format

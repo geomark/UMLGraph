@@ -17,7 +17,7 @@
  *
  */
 
-package org.umlgraph.doclet;
+package org.umlgraph.model;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,9 +38,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.Doc;
-import com.sun.javadoc.Tag;
+import com.sun.source.doctree.DocCommentTree;
+import jdk.javadoc.doclet.DocletEnvironment;
+import org.umlgraph.util.StringUtil;
+
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
 
 /**
  * Represent the program options
@@ -51,23 +54,23 @@ public class Options implements Cloneable, OptionProvider {
     // reused often, especially in UmlGraphDoc, worth creating just once and reusing
     private static final Pattern allPattern = Pattern.compile(".*");
     protected static final String DEFAULT_EXTERNAL_APIDOC = "http://docs.oracle.com/javase/7/docs/api/";
-    
+	private DocletEnvironment environment;
     // instance fields
-    List<Pattern> hidePatterns = new ArrayList<Pattern>();
-    List<Pattern> includePatterns = new ArrayList<Pattern>();
-    boolean showQualified = false;
-    boolean showQualifiedGenerics = false;
-    boolean hideGenerics = false;
-    boolean showAttributes = false;
-    boolean showEnumerations = false;
-    boolean showEnumConstants = false;
-    boolean showOperations = false;
-    boolean showConstructors = false;
-    boolean showVisibility = false;
-    boolean horizontal;
-    boolean showType = false;
-    boolean showComment = false;
-    boolean autoSize = true;
+	public List<Pattern> hidePatterns = new ArrayList<Pattern>();
+	public List<Pattern> includePatterns = new ArrayList<Pattern>();
+    public  boolean showQualified = false;
+	public boolean showQualifiedGenerics = false;
+	public boolean hideGenerics = false;
+	public boolean showAttributes = false;
+	public boolean showEnumerations = false;
+	public boolean showEnumConstants = false;
+	public boolean showOperations = false;
+	public boolean showConstructors = false;
+	public boolean showVisibility = false;
+	public boolean horizontal;
+	public boolean showType = false;
+	public boolean showComment = false;
+	public boolean autoSize = true;
     String edgeFontName = Font.DEFAULT_FONT;
     String edgeFontColor = "black";
     String edgeColor = "black";
@@ -76,7 +79,7 @@ public class Options implements Cloneable, OptionProvider {
     boolean nodeFontAbstractItalic = true;
     String nodeFontColor = "black";
     double nodeFontSize = 10;
-    String nodeFillColor = null;
+    public String nodeFillColor = null;
     double nodeFontClassSize = -1;
     String nodeFontClassName = null;
     double nodeFontTagSize = -1;
@@ -86,7 +89,7 @@ public class Options implements Cloneable, OptionProvider {
     Shape shape = Shape.CLASS;
     String bgColor = null;
     public String outputFileName = "graph.dot";
-    String outputEncoding = "ISO-8859-1"; // TODO: default to UTF-8 now?
+    public String outputEncoding = "ISO-8859-1"; // TODO: default to UTF-8 now?
     Map<Pattern, String> apiDocMap = new HashMap<Pattern, String>();
     String apiDocRoot = null;
     boolean postfixPackage = false;
@@ -102,13 +105,13 @@ public class Options implements Cloneable, OptionProvider {
      * more difficult to verify with XML tools.
      */
     /** Guillemot left (open) */
-    String guilOpen = "&#171;";		// &laquo; \u00ab
+    public String guilOpen = "&#171;";		// &laquo; \u00ab
     /** Guillemot right (close) */
-    String guilClose = "&#187;";	// &raquo; \u00bb
-    boolean inferRelationships = false;
-    boolean inferDependencies = false;
-    boolean collapsibleDiagrams = false;
-    RelationPattern contextRelationPattern = new RelationPattern(RelationDirection.BOTH);
+	public String guilClose = "&#187;";	// &raquo; \u00bb
+	public boolean inferRelationships = false;
+	public boolean inferDependencies = false;
+	public boolean collapsibleDiagrams = false;
+    public RelationPattern contextRelationPattern = new RelationPattern(RelationDirection.BOTH);
     boolean useImports = false;
     Visibility inferDependencyVisibility = Visibility.PRIVATE;
     boolean inferDepInPackage = false;
@@ -117,16 +120,17 @@ public class Options implements Cloneable, OptionProvider {
     boolean compact = false;
     boolean hidePrivateInner = false;
     // internal option, used by UMLDoc to generate relative links between classes
-    boolean relativeLinksForSourcePackages = false;
+	public boolean relativeLinksForSourcePackages = false;
     // internal option, used by UMLDoc to force strict matching on the class names
     // and avoid problems with packages in the template declaration making UmlGraph hide 
     // classes outside of them (for example, class gr.spinellis.Foo<T extends java.io.Serializable>
     // would have been hidden by the hide pattern "java.*"
     // TODO: consider making this standard behaviour
-    boolean strictMatching = false;
-    String dotExecutable = "dot";
+	public boolean strictMatching = false;
+    public String dotExecutable = "dot";
 
-    Options() {
+    public Options(DocletEnvironment environment) {
+    	this.environment = environment;
     }
 
     @Override
@@ -163,7 +167,7 @@ public class Options implements Cloneable, OptionProvider {
      * @param expect Expected string
      * @return {@code true} on success
      */
-    protected static boolean matchOption(String given, String expect) {
+    public static boolean matchOption(String given, String expect) {
 	return matchOption(given, expect, false);
     }
 
@@ -257,7 +261,7 @@ public class Options implements Cloneable, OptionProvider {
     }
     
     /** Set the options based on a single option and its arguments */
-    void setOption(String[] opt) {
+	public void setOption(String[] opt) {
 	if(!matchOption(opt[0], "hide") && optionLength(opt[0]) > opt.length) {
 	    System.err.println("Skipping option '" + opt[0] + "', missing argument");
 	    return;
@@ -582,12 +586,23 @@ public class Options implements Cloneable, OptionProvider {
 
 
     /** Set the options based on the tag elements of the ClassDoc parameter */
-    public void setOptions(Doc p) {
-	if (p == null)
-	    return;
+    public void setOptions(Element p) {
+	if (p == null){
+		return;
+	}
+	else{
 
-	for (Tag tag : p.tags("opt"))
-	    setOption(StringUtil.tokenize(tag.text()));
+		DocCommentTree tree = environment.getDocTrees().getDocCommentTree(p);
+
+		tree.getBlockTags()
+				.stream()
+				.filter(tag ->{
+					return tag.getKind().tagName.equals("opt");
+				})
+				.forEach(tg ->{
+					setOption(StringUtil.tokenize(tg.toString()));
+				});
+	}
     }
 
     /**
@@ -640,9 +655,9 @@ public class Options implements Cloneable, OptionProvider {
     // OptionProvider methods
     // ---------------------------------------------------------------- 
     
-    public Options getOptionsFor(ClassDoc cd) {
+    public Options getOptionsFor(TypeElement cd) {
 	Options localOpt = getGlobalOptions();
-	localOpt.setOptions(cd);
+//	localOpt.setOptions(cd);
 	return localOpt;
     }
 
@@ -654,7 +669,7 @@ public class Options implements Cloneable, OptionProvider {
 	return (Options) clone();
     }
 
-    public void overrideForClass(Options opt, ClassDoc cd) {
+    public void overrideForClass(Options opt, TypeElement cd) {
 	// nothing to do
     }
 

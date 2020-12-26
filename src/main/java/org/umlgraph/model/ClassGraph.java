@@ -29,6 +29,8 @@ import static org.umlgraph.util.StringUtil.removeTemplate;
 import static org.umlgraph.util.StringUtil.splitPackageClass;
 import static org.umlgraph.util.StringUtil.tokenize;
 
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,15 +39,11 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.lang.model.element.VariableElement;
+
+import com.sun.jdi.ClassType;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.doctree.DocTree;
 import jdk.javadoc.doclet.DocletEnvironment;
@@ -53,6 +51,7 @@ import org.umlgraph.doclet.UmlGraphDoc;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
+import javax.lang.model.util.Types;
 
 /**
  * Class graph generation engine
@@ -314,8 +313,10 @@ public class ClassGraph {
     private void tagvalue(Options opt, Element c) {
 		DocCommentTree dctree = root.getDocTrees().getDocCommentTree(c);
 
+		if(dctree != null)
 		dctree.getBlockTags()
 				.stream()
+				.filter(tg-> tg.getKind().tagName != null)
 				.filter(tg-> tg.getKind().tagName.equals("tagvalue"))
 		        .forEach(tg -> {
 					String t[] = tokenize(tg.toString());
@@ -335,33 +336,47 @@ public class ClassGraph {
     private void stereotype(Options opt, Element c, Align align) {
 		DocCommentTree dctree = root.getDocTrees().getDocCommentTree(c);
 
-		dctree.getBlockTags()
-				.stream()
-				.filter(tg-> tg.getKind().tagName.equals("tagvalue"))
-				.forEach(tg -> {
-					String t[] = tokenize(tg.toString());
-					if (t.length != 1) {
-						System.err.println("@stereotype expects one field: " + tg.toString());
-					}
-					else{
-						tableLine(align, guilWrap(opt, t[0]));
-					}
+		if(dctree != null){
+			dctree.getBlockTags()
+					.stream()
+					.filter(tg-> tg.getKind().tagName != null)
+					.filter(tg-> tg.getKind().tagName.equals("tagvalue"))
+					.forEach(tg -> {
+						String t[] = tokenize(tg.toString());
+						if (t.length != 1) {
+							System.err.println("@stereotype expects one field: " + tg.toString());
+						}
+						else{
+							tableLine(align, guilWrap(opt, t[0]));
+						}
 
-				});
+					});
+		}
+
     }
 
     /** Return true if c has a @hidden tag associated with it */
     private boolean hidden(Element c) {
 		DocCommentTree tree = root.getDocTrees().getDocCommentTree(c);
 
-		long telements = tree.getBlockTags()
-				.stream()
-				.filter(tg -> tg.getKind().tagName.equals("hidden"))
-				.filter(tg -> tg.getKind().tagName.equals("view"))
-				.count();
+		if(tree == null)
+			return false;
 
-	if (telements > 0)
-	    return true;
+		List<? extends DocTree> bltag = tree.getBlockTags();
+
+		for(DocTree tag: bltag){
+			if(tag.getKind().tagName != null && tag.getKind().tagName.contains("hidden"))
+				return true;
+		}
+
+//		long telements = tree.getBlockTags()
+//				.stream()
+//				.filter(tg -> tg.getKind().tagName.equals("hidden"))
+////				.filter(tg -> tg.getKind().tagName.equals("view"))
+//				.count();
+//
+//	if (telements > 0)
+//	    return true;
 	Options opt = optionProvider.getOptionsFor(c.getSimpleName().toString());
 
 	return opt.matchesHideExpression(c.toString()) //
@@ -533,6 +548,7 @@ public class ClassGraph {
 			int ni = 0;
 		};
 
+		if(root.getDocTrees().getDocCommentTree(c) != null)
 		root.getDocTrees().getDocCommentTree(c).getBlockTags().forEach(t -> {
 			String noteName = "n" + ref.ni + "c" + ci.name;
 			w.print(linePrefix + "// Note annotation\n");
@@ -561,28 +577,40 @@ public class ClassGraph {
 	String tagname = rt.lower;
 
 
+	    if(root.getDocTrees().getDocCommentTree(from) != null)
 		root.getDocTrees().getDocCommentTree(from).getBlockTags().forEach(tag -> {
 //	for (Tag tag : from.tags(tagname)) {
 	    String t[] = tokenize(tag.toString());    // l-src label l-dst target
 	    t = t.length == 1 ? new String[] { "-", "-", "-", t[0] } : t; // Shorthand
-	    if (t.length != 4) {
+	    if (t.length != 5) {
 		System.err.println("Error in " + from + "\n" + tagname + " expects four fields (l-src label l-dst target): " + tag.toString());
 		return;
 	    }
 
+			Optional<TypeElement> toel = findElementByClassName(t[4]);
 	    //TODO:probably wrong
-		TypeElement to = (TypeElement) from.getEnclosingElement();    //findClass(t[3]);
-	    if (to != null) {
-		if(hidden(to))
-		relation(opt, rt, from, to, t[0], t[1], t[2]);
-	    } else {
-		if(hidden(t[3]))
+			if(toel.isPresent()){
+				TypeElement to = toel.get();
+					if(hidden(to))
+						relation(opt, rt, from, to, t[0], t[1], t[2]);
+			}
+			else{
+				if(hidden(t[3]))
 
-		relation(opt, rt, from, from.toString(), to, t[3], t[0], t[1], t[2]);
-	    }
+					relation(opt, rt, from, from.toString(), null, t[3], t[0], t[1], t[2]);
+			}
+
 	});
 
     }
+
+    private Optional<TypeElement> findElementByClassName(String qname) {
+		return (Optional<TypeElement>) root.getIncludedElements()
+				.stream()
+				.filter(el -> el.getKind().equals(ElementKind.CLASS) || el.getKind().equals(ElementKind.INTERFACE))
+				.filter(el -> ((TypeElement) el).getQualifiedName().toString().equals(qname)).findFirst();
+
+	}
 
     /**
      * Print the specified relation
@@ -642,15 +670,20 @@ public class ClassGraph {
     /** Print a class's relations */
     public void printRelations(TypeElement c) {
 	Options opt = optionProvider.getOptionsFor(c);
-	if (hidden(c) || c.getSimpleName().toString().equals("")) // avoid phantom classes, they may pop up when the source uses annotations
+	if (hidden(c) || c.getQualifiedName().toString().equals("java.lang.Object")) // avoid phantom classes, they may pop up when the source uses annotations
 	    return;
 	// Print generalization (through the Java superclass)
+
 		TypeMirror s = c.getSuperclass();
-		TypeElement sc = s != null && !s.getClass().getName().equals(Object.class.getName()) ? (TypeElement) s : null;
+
+
+
+		TypeElement sc = s != null && !s.getClass().getName().equals(Object.class.getName()) ? (TypeElement) ((DeclaredType) s).asElement() : null;
 	if (sc != null && !c.getKind().equals(ElementKind.ENUM)   && !hidden(sc))
 	    relation(opt, RelationType.EXTENDS, c, sc, null, null, null);
 	// Print generalizations (through @extends tags)
 		//for (Tag tag : c.tags("extends"))
+		if(root.getDocTrees().getDocCommentTree(c) != null)
 		root.getDocTrees().getDocCommentTree(c).getBlockTags().stream()
 				.filter(t->t.getKind()
 						.equals(DocTree.Kind.INDEX)).forEach(tag ->{
@@ -869,8 +902,8 @@ public class ClassGraph {
 	if(type.getKind().isPrimitive() || type instanceof WildcardType || type instanceof TypeVariable)
 	    return null;
 
-	if(type instanceof DeclaredType dtype ){
-
+	if(type instanceof DeclaredType ){
+		DeclaredType dtype = (DeclaredType) type;
 //	if (type.dimension().endsWith("[]")) {
  	if (type.getKind().toString().endsWith("[]")) {
 		return new FieldRelationInfo((TypeElement) dtype.asElement(), true);

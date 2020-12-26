@@ -189,24 +189,25 @@ public class UmlGraphDoc implements Doclet {
 	    throws IOException {
 	Set<String> packages = new HashSet<String>();
 
-		Set<? extends ModuleElement> mels = root.getElementUtils().getAllModuleElements();
+
+
+
+		Set<? extends PackageElement> mels = root.getElementUtils().getAllPackageElements("test");
 
 		Set<? extends Element> pels = new HashSet<>();
 
-		for(ModuleElement mel : mels){
-			Set<? extends Element> res = mel.getEnclosedElements().stream().filter(p -> {
-				return p.getKind().equals(ElementKind.PACKAGE);
-			}).collect(Collectors.toSet());
+//		for(ModuleElement mel : mels){
+//			Set<? extends Element> res = mel.getEnclosedElements().stream().filter(p -> {
+//				return p.getKind().equals(ElementKind.PACKAGE);
+//			}).collect(Collectors.toSet());
+//
+//			pels = res;
+////			pels.add(res);
 
-			pels = res;
-//			pels.add(res);
-
-		}
+//		}
 
 
-		pels.forEach(pel ->{
-			PackageElement packageDoc = (PackageElement) pel;
-
+		mels.forEach(packageDoc ->{
 
 			if(!packages.contains(packageDoc.getSimpleName().toString())) {
 				packages.add(packageDoc.getSimpleName().toString());
@@ -437,12 +438,15 @@ public class UmlGraphDoc implements Doclet {
 		Options opt = op.getGlobalOptions();
 		reporter.print(Diagnostic.Kind.NOTE,"Building " + op.getDisplayName());
 
-		Set<? extends Element> classes = env.getIncludedElements();
+		Set<? extends Element> classes = env.getIncludedElements().stream()
+				.filter(cd ->!cd.getKind().equals(ElementKind.PACKAGE)).collect(Collectors.toSet());
 
 		ClassGraph c = new ClassGraph(env, op, contextDoc);
 		c.prologue();
 		for (Element cd : classes)
-			c.printClass((TypeElement) cd, true);
+			if(!cd.getKind().equals(ElementKind.PACKAGE)){
+				c.printClass((TypeElement) cd, true);
+			}
 		for (Element cd : classes)
 			c.printRelations((TypeElement) cd);
 		if(opt.inferRelationships)

@@ -594,8 +594,10 @@ public class Options implements Cloneable, OptionProvider {
 
 		DocCommentTree tree = environment.getDocTrees().getDocCommentTree(p);
 
+		if(tree !=null)
 		tree.getBlockTags()
 				.stream()
+				.filter(tag -> tag.getKind().tagName != null)
 				.filter(tag ->{
 					return tag.getKind().tagName.equals("opt");
 				})

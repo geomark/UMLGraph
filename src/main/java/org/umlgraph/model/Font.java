@@ -60,22 +60,22 @@ public enum Font {
 	    // Not used with the wrap function.
 	    throw new UnsupportedOperationException();
 	case ABSTRACT:
-	    italic = opt.nodeFontAbstractItalic;
+	    italic = opt.isNodeFontAbstractItalic();
 	case NORMAL:
 	    break;
 	case CLASS_ABSTRACT:
-	    italic = opt.nodeFontAbstractItalic;
+	    italic = opt.isNodeFontAbstractItalic();
 	case CLASS:
-	    face = opt.nodeFontClassName;
-	    size = opt.nodeFontClassSize;
+	    face = opt.getNodeFontClassName();
+	    size = opt.getNodeFontClassSize();
 	    break;
 	case PACKAGE:
-	    face = opt.nodeFontPackageName;
-	    size = opt.nodeFontPackageSize;
+	    face = opt.getNodeFontPackageName();
+	    size = opt.getNodeFontPackageSize();
 	    break;
 	case TAG:
-	    face = opt.nodeFontTagName;
-	    size = opt.nodeFontTagSize;
+	    face = opt.getNodeFontTagName();
+	    size = opt.getNodeFontTagSize();
 	    break;
 	}
 	if (face == null && size < 0 && !italic)

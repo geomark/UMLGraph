@@ -66,17 +66,17 @@ public class PackageView implements OptionProvider {
 //	opt.setOptions(cd);
 	boolean inPackage = matcher.matches(cd);
 	if (inPackage)
-	    opt.showQualified = false;
+	    opt.setShowQualified(false);
 	boolean included = inPackage || this.opt.matchesIncludeExpression(cd.getQualifiedName().toString());
 	if (!included || this.opt.matchesHideExpression(cd.getQualifiedName().toString()))
 	    opt.setOption(HIDE);
     }
 
     public void overrideForClass(Options opt, String className) {
-	opt.showQualified = false;
+		opt.setShowQualified(false);
 	boolean inPackage = matcher.matches(className);
 	if (inPackage)
-	    opt.showQualified = false;
+		opt.setShowQualified(false);
 	boolean included = inPackage || this.opt.matchesIncludeExpression(className);
 	if (!included || this.opt.matchesHideExpression(className))
 	    opt.setOption(HIDE);

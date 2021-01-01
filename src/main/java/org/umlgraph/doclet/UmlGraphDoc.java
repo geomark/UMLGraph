@@ -107,15 +107,15 @@ public class UmlGraphDoc implements Doclet {
 		reporter.print(Diagnostic.Kind.NOTE,"UmlGraphDoc version " + Version.VERSION + ", altering javadocs");
 
 		try {
-			String outputFolder =  "";//findOutputPath(root.options());
+			String outputFolder =  "testdata/dot-out";//findOutputPath(root.options());
 
 			Options opt = buildOptions(environment,getSupportedOptions());
 //			opt.setOptions(root.options());
 			// in javadoc enumerations are always printed
-			opt.showEnumerations = true;
-			opt.relativeLinksForSourcePackages = true;
+			opt.setShowEnumerations(true);
+			opt.setRelativeLinksForSourcePackages(true);
 			// enable strict matching for hide expressions
-			opt.strictMatching = true;
+			opt.setStrictMatching(true);
 
 			reporter.print(Diagnostic.Kind.NOTE,opt.toString());
 
@@ -218,7 +218,7 @@ public class UmlGraphDoc implements Doclet {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				runGraphviz(opt.dotExecutable, outputFolder, packageDoc.getSimpleName().toString(), packageDoc.getSimpleName().toString(), reporter);
+				runGraphviz(opt.getDotExecutable(), outputFolder, packageDoc.getSimpleName().toString(), packageDoc.getSimpleName().toString(), reporter);
 				try {
 					alterHtmlDocs(opt, outputFolder, packageDoc.getSimpleName().toString(), packageDoc.getSimpleName().toString(),
 							"package-summary.html", Pattern.compile("(</[Hh]2>)|(<h1 title=\"Package\").*"), reporter);
@@ -261,7 +261,7 @@ public class UmlGraphDoc implements Doclet {
 		    view.setContextCenter(tel);
 		buildGraph(root, view, classDoc);
 
-		runGraphviz(opt.dotExecutable, outputFolder, classDoc.getEnclosingElement().getSimpleName().toString(), classDoc.getSimpleName().toString(), reporter);
+		runGraphviz(opt.getDotExecutable(), outputFolder, classDoc.getEnclosingElement().getSimpleName().toString(), classDoc.getSimpleName().toString(), reporter);
 		alterHtmlDocs(opt, outputFolder, classDoc.getEnclosingElement().getSimpleName().toString(),classDoc.getSimpleName().toString(),
 				classDoc.getSimpleName().toString() + ".html", Pattern.compile(".*(Class|Interface|Enum) " + classDoc.getSimpleName().toString()+ ".*") , reporter);
 	    } catch (Exception e) {
@@ -353,9 +353,9 @@ public class UmlGraphDoc implements Doclet {
 	boolean matched = false;
 	try {
 	    writer = new BufferedWriter(new OutputStreamWriter(new
-		    FileOutputStream(alteredFile), opt.outputEncoding));
+		    FileOutputStream(alteredFile), opt.getOutputEncoding()));
 	    reader = new BufferedReader(new InputStreamReader(new
-		    FileInputStream(htmlFile), opt.outputEncoding));
+		    FileInputStream(htmlFile), opt.getOutputEncoding()));
 
 	    String line;
 	    while ((line = reader.readLine()) != null) {
@@ -365,7 +365,7 @@ public class UmlGraphDoc implements Doclet {
 		    matched = true;
 			
 		    String tag;
-		    if (opt.autoSize)
+		    if (opt.isAutoSize())
 		        tag = String.format(UML_AUTO_SIZED_DIV_TAG, className);
 		    else
                 tag = String.format(UML_DIV_TAG, className);
@@ -424,6 +424,7 @@ public class UmlGraphDoc implements Doclet {
 //		commentOptions.shape = Shape.NOTE;
 
 		Options opt = new Options(environment);
+		opt.setOutputDirectory("testdata/dot-out");
 //		opt.setOptions(root.options());
 //		opt.setOptions(findClass(root, "UMLOptions"));
 		return opt;

@@ -119,7 +119,7 @@ public class BasicTest {
 	    dotFile.delete();
 	    File refFile = new File(testRefFolder, outFileName);
 	    String javaPath = new File(testSourceFolder, javaFiles[i]).getAbsolutePath();
-	    String[] options = new String[] { "-doclet", "org.umlgraph.doclet.UmlGraphDoc" ,
+	    String[] options = new String[] { "-doclet", "org.umlgraph.doclet.UmlGraph" ,
 		     "-private",   javaPath };
 //"-output", outFileName,
 	    runDoclet(options);

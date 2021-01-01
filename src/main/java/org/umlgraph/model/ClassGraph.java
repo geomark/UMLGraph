@@ -29,8 +29,7 @@ import static org.umlgraph.util.StringUtil.removeTemplate;
 import static org.umlgraph.util.StringUtil.splitPackageClass;
 import static org.umlgraph.util.StringUtil.tokenize;
 
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -126,21 +125,21 @@ public class ClassGraph {
 	    contextPackageName = null; // Not available
 	
 	Options opt = optionProvider.getGlobalOptions();
-	linePrefix = opt.compact ? "" : "\t";
-	linePostfix = opt.compact ? "" : "\n";
+	linePrefix = opt.isCompact() ? "" : "\t";
+	linePostfix = opt.isCompact() ? "" : "\n";
     }
 
     
 
     /** Return the class's name, possibly by stripping the leading path */
     private static String qualifiedName(Options opt, String r) {
-	if (opt.hideGenerics)
+	if (opt.isHideGenerics())
 	    r = removeTemplate(r);
 	// Fast path - nothing to do:
-	if (opt.showQualified && (opt.showQualifiedGenerics || r.indexOf('<') < 0))
+	if (opt.isShowQualified() && (opt.isShowQualifiedGenerics() || r.indexOf('<') < 0))
 	    return r;
 	StringBuilder buf = new StringBuilder(r.length());
-	qualifiedNameInner(opt, r, buf, 0, !opt.showQualified);
+	qualifiedNameInner(opt, r, buf, 0, !opt.isShowQualified());
 	return buf.toString();
     }
 
@@ -161,7 +160,7 @@ public class ClassGraph {
 	    // Handle nesting of generics
 	    if (c == '<') {
 		buf.append('<');
-		i = last = qualifiedNameInner(opt, r, buf, ++last, !opt.showQualifiedGenerics);
+		i = last = qualifiedNameInner(opt, r, buf, ++last, !opt.isShowQualifiedGenerics());
 		buf.append('>');
 	    } else if (c == '>')
 		return i + 1;
@@ -175,7 +174,7 @@ public class ClassGraph {
      * any stereotypes
      */
     private String visibility(Options opt, Element e) {
-	return opt.showVisibility ? Visibility.get(e).symbol : " ";
+	return opt.isShowVisibility()  ? Visibility.get(e).symbol : " ";
     }
 
     /** Print the method parameter p */
@@ -202,9 +201,9 @@ public class ClassGraph {
 
     /** Print a a basic type t */
     private String type(Options opt, TypeMirror t, boolean generics) {
-	return ((generics ? opt.showQualifiedGenerics : opt.showQualified) ? //
+	return ((generics ? opt.isShowQualifiedGenerics() : opt.isShowQualified()) ? //
 			t.getKind().getDeclaringClass().getCanonicalName() : t.getKind().getDeclaringClass().getName()) //
-		+ (opt.hideGenerics ? "" : typeParameters(opt, (DeclaredType) t));
+		+ (opt.isHideGenerics() ? "" : typeParameters(opt, (DeclaredType) t));
 
     }
 
@@ -240,7 +239,7 @@ public class ClassGraph {
 		continue;
 	    stereotype(opt, f, Align.LEFT);
 	    String att = visibility(opt, f) + f.getSimpleName().toString();
-	    if (opt.showType)
+	    if (opt.isShowType())
 		att += typeAnnotation(opt, f.asType());
 	    tableLine(Align.LEFT, att);
 	    tagvalue(opt, f);
@@ -262,7 +261,7 @@ public class ClassGraph {
 	    stereotype(opt, cd, Align.LEFT);
 
 	    String cs = visibility(opt, cd) + cd.getSimpleName().toString() //
-		    + (opt.showType ? "(" + parameter(opt, cd.getTypeParameters()) + ")" : "()");
+		    + (opt.isShowType() ? "(" + parameter(opt, cd.getTypeParameters()) + ")" : "()");
 	    tableLine(Align.LEFT, cs);
 	    tagvalue(opt, cd);
 	    printed = true;
@@ -281,7 +280,7 @@ public class ClassGraph {
 		continue;
 	    stereotype(opt, md, Align.LEFT);
 	    String op = visibility(opt, md) + md.getSimpleName().toString()+ //
-		    (opt.showType ? "(" + parameter(opt, md.getParameters().toArray(new VariableElement[md.getParameters().size()])) + ")" + typeAnnotation(opt, md.getReturnType())
+		    (opt.isShowType() ? "(" + parameter(opt, md.getParameters().toArray(new VariableElement[md.getParameters().size()])) + ")" + typeAnnotation(opt, md.getReturnType())
 			    : "()");
 
 	    tableLine(Align.LEFT, (md.getModifiers().contains(Modifier.ABSTRACT) ? Font.ABSTRACT : Font.NORMAL).wrap(opt, op));
@@ -295,13 +294,13 @@ public class ClassGraph {
     /** Print the common class node's properties */
     private void nodeProperties(Options opt) {
 	Options def = opt.getGlobalOptions();
-	if (opt.nodeFontName != def.nodeFontName)
-	    w.print(",fontname=\"" + opt.nodeFontName + "\"");
-	if (opt.nodeFontColor != def.nodeFontColor)
-	    w.print(",fontcolor=\"" + opt.nodeFontColor + "\"");
-	if (opt.nodeFontSize != def.nodeFontSize)
-	    w.print(",fontsize=" + fmt(opt.nodeFontSize));
-	w.print(opt.shape.style);
+	if (opt.getNodeFontName()  != def.getNodeFontName())
+	    w.print(",fontname=\"" + opt.getNodeFontName() + "\"");
+	if (opt.getNodeFontColor() != def.getNodeFontColor())
+	    w.print(",fontcolor=\"" + opt.getNodeFontColor() + "\"");
+	if (opt.getNodeFontSize() != def.getNodeFontSize())
+	    w.print(",fontsize=" + fmt(opt.getNodeFontSize()));
+	w.print(opt.getShape().style);
 	w.println("];");
     }
 
@@ -380,7 +379,7 @@ public class ClassGraph {
 	Options opt = optionProvider.getOptionsFor(c.getSimpleName().toString());
 
 	return opt.matchesHideExpression(c.toString()) //
-		|| (opt.hidePrivateInner && c instanceof TypeElement  && c.getModifiers().contains(Modifier.PRIVATE)
+		|| (opt.isHidePrivateInner()  && c instanceof TypeElement  && c.getModifiers().contains(Modifier.PRIVATE)
 			&&  c.getEnclosingElement() != null);
     }
 
@@ -422,7 +421,7 @@ public class ClassGraph {
 		if (ci.nodePrinted || ci.hidden)
 			return ci.name;
 		Options opt = optionProvider.getOptionsFor(c);
-		if (c.getKind().equals(ElementKind.ENUM) && !opt.showEnumerations)
+		if (c.getKind().equals(ElementKind.ENUM) && !opt.isShowOperations())
 			return ci.name;
 		String className = c.toString();
 		// Associate classname's alias
@@ -431,21 +430,21 @@ public class ClassGraph {
 		w.print(linePrefix + ci.name + " [label=");
 
 		long nomethods = c.getEnclosedElements().stream().filter(element -> {
-			return element.asType() instanceof ExecutableElement;
+			return element.getKind().equals(ElementKind.METHOD);
 		}).count();
 
 		long noconstructors = c.getEnclosedElements().stream().filter(element -> {
-			return element.asType() instanceof ExecutableElement;
+			return element.getKind().equals(ElementKind.CONSTRUCTOR);
 		}).count();
 
 		long totalenumconstants = c.getEnclosedElements().stream().filter(el -> {
 			return el.getKind().equals(ElementKind.ENUM_CONSTANT);
 		}).count();
 		boolean showMembers =
-				(opt.showAttributes && c.getEnclosedElements().size() > 0) ||
-						(c.getKind().equals(ElementKind.ENUM) && opt.showEnumConstants && totalenumconstants > 0) ||
-						(opt.showOperations && nomethods > 0) ||
-						(opt.showConstructors && noconstructors > 0);
+				(opt.isShowAttributes() && c.getEnclosedElements().size() > 0) ||
+						(c.getKind().equals(ElementKind.ENUM) && opt.isShowEnumConstants() && totalenumconstants > 0) ||
+						(opt.isShowOperations() && nomethods > 0) ||
+						(opt.isShowConstructors()  && noconstructors > 0);
 
 		final String url = classToUrl(c, rootClass);
 
@@ -461,14 +460,14 @@ public class ClassGraph {
 		Font font = c.getModifiers().contains(Modifier.ABSTRACT) && !c.getKind().isInterface() ? Font.CLASS_ABSTRACT : Font.CLASS;
 		String qualifiedName = qualifiedName(opt, className);
 		int idx = splitPackageClass(qualifiedName);
-		if (opt.showComment) {
+		if (opt.isShowComment()) {
 			DocCommentTree tree = root.getDocTrees().getDocCommentTree(c);
 			String commentText = tree.getFullBody().stream().map(el -> el.toString()).reduce("", (partialString, element) -> {
 				return partialString + element.toString();
 			});
 
 			tableLine(Align.LEFT, Font.CLASS.wrap(opt, htmlNewline(escape(commentText))));
-		} else if (opt.postfixPackage && idx > 0 && idx < (qualifiedName.length() - 1)) {
+		} else if (opt.isPostfixPackage() && idx > 0 && idx < (qualifiedName.length() - 1)) {
 			String packageName = qualifiedName.substring(0, idx);
 			String cn = qualifiedName.substring(idx + 1);
 			tableLine(Align.CENTER, font.wrap(opt, escape(cn)));
@@ -485,7 +484,7 @@ public class ClassGraph {
 		 * marked: "Calculate the number of innerTable rows we will emmit"
 		 */
 		if (showMembers) {
-			if (opt.showAttributes) {
+			if (opt.isShowAttributes()) {
 				innerTableStart();
 				List<? extends TypeParameterElement> fields = c.getTypeParameters();
 
@@ -495,14 +494,14 @@ public class ClassGraph {
 				else
 					attributes(opt, fields);
 				innerTableEnd();
-			} else if (!c.getKind().equals(ElementKind.ENUM) && (opt.showConstructors || opt.showOperations)) {
+			} else if (!c.getKind().equals(ElementKind.ENUM) && (opt.isShowConstructors() || opt.isShowOperations())) {
 				// show an emtpy box if we don't show attributes but
 				// we show operations
 				innerTableStart();
 				tableLine(Align.LEFT, "");
 				innerTableEnd();
 			}
-			if (c.getKind().equals(ElementKind.ENUM) && opt.showEnumConstants) {
+			if (c.getKind().equals(ElementKind.ENUM) && opt.isShowEnumConstants()) {
 				innerTableStart();
 
 
@@ -517,14 +516,14 @@ public class ClassGraph {
 				}
 				innerTableEnd();
 			}
-			if (!c.getKind().equals(ElementKind.ENUM) && (opt.showConstructors || opt.showOperations)) {
+			if (!c.getKind().equals(ElementKind.ENUM) && (opt.isShowConstructors() || opt.isShowOperations())) {
 				innerTableStart();
 				boolean printedLines = false;
-				if (opt.showConstructors)
+				if (opt.isShowConstructors())
 
 					printedLines |= operations(opt, c.getEnclosedElements().stream()
 							.filter(el -> el.getKind().equals(ElementKind.CONSTRUCTOR)).toArray(ExecutableElement[]::new));
-				if (opt.showOperations)
+				if (opt.isShowOperations())
 					printedLines |= operations(opt, c.getEnclosedElements().stream()
 							.filter(el -> el.getKind().equals(ElementKind.METHOD)).toArray(ExecutableElement[]::new));
 
@@ -540,7 +539,7 @@ public class ClassGraph {
 		if (url != null)
 			w.print(", URL=\"" + url + "\"");
 
-
+		nodeProperties(opt);
 		// If needed, add a note for this node
 //	int ni = 0;
 //	for (DocTree t : c.   tags("note")) {
@@ -553,7 +552,7 @@ public class ClassGraph {
 			String noteName = "n" + ref.ni + "c" + ci.name;
 			w.print(linePrefix + "// Note annotation\n");
 			w.print(linePrefix + noteName + " [label=");
-			externalTableStart(UmlGraphDoc.getCommentOptions(), c.getQualifiedName().toString(), url);
+			externalTableStart(opt, c.getQualifiedName().toString(), url);
 			innerTableStart();
 			tableLine(Align.LEFT, Font.CLASS.wrap(UmlGraphDoc.getCommentOptions(), htmlNewline(escape(t.toString()))));
 			innerTableEnd();
@@ -640,11 +639,11 @@ public class ClassGraph {
 	// print relation
 	w.println(linePrefix + "// " + fromName + " " + rt.lower + " " + toName);
 	w.println(linePrefix + n1 + " -> " + n2 + " [" + rt.style +
-		(opt.edgeColor != def.edgeColor ? ",color=\"" + opt.edgeColor + "\"" : "") +
+		(opt.getEdgeColor()  != def.getEdgeColor()  ? ",color=\"" + opt.getEdgeColor()  + "\"" : "") +
 		(unLabeled ? "" :
-		    (opt.edgeFontName != def.edgeFontName ? ",fontname=\"" + opt.edgeFontName + "\"" : "") +
-		    (opt.edgeFontColor != def.edgeFontColor ? ",fontcolor=\"" + opt.edgeFontColor + "\"" : "") +
-		    (opt.edgeFontSize != def.edgeFontSize ? ",fontsize=" + fmt(opt.edgeFontSize) : "")) +
+		    (opt.getEdgeFontName() != def.getEdgeFontName() ? ",fontname=\"" + opt.getEdgeFontName() + "\"" : "") +
+		    (opt.getEdgeFontColor() != def.getEdgeFontColor() ? ",fontcolor=\"" + opt.getEdgeFontColor() + "\"" : "") +
+		    (opt.getEdgeFontSize()  != def.getEdgeFontSize() ? ",fontsize=" + fmt(opt.getEdgeFontSize()) : "")) +
 		tailLabel + label + headLabel +
 		"];");
 	
@@ -733,7 +732,7 @@ public class ClassGraph {
 	    String qualifiedName = qualifiedName(opt, className);
 	    int startTemplate = qualifiedName.indexOf('<');
 	    int idx = qualifiedName.lastIndexOf('.', startTemplate < 0 ? qualifiedName.length() - 1 : startTemplate);
-	    if(opt.postfixPackage && idx > 0 && idx < (qualifiedName.length() - 1)) {
+	    if(opt.isPostfixPackage()  && idx > 0 && idx < (qualifiedName.length() - 1)) {
 		String packageName = qualifiedName.substring(0, idx);
 		String cn = qualifiedName.substring(idx + 1);
 		tableLine(Align.CENTER, Font.CLASS.wrap(opt, escape(cn)));
@@ -783,7 +782,7 @@ public class ClassGraph {
 	    RelationPattern rp = getClassInfo(c, true).getRelation(fri.cd.toString());
 	    if (rp == null) {
 		String destAdornment = fri.multiple ? "*" : "";
-		relation(opt, opt.inferRelationshipType, c, fri.cd, "", "", destAdornment);
+		relation(opt, opt.getInferRelationshipType(), c, fri.cd, "", "", destAdornment);
             }
 	}
     }
@@ -815,7 +814,7 @@ public class ClassGraph {
 			.stream()
 			.filter(el -> el instanceof ExecutableElement)
 			.map(el-> (ExecutableElement)el )
-			.collect(Collectors.toList()), opt.inferDependencyVisibility)) {
+			.collect(Collectors.toList()), opt.getInferDependencyVisibility())) {
 
 	    types.add(method.getReturnType());
 	    for (VariableElement parameter : method.getParameters()) {
@@ -828,7 +827,7 @@ public class ClassGraph {
 				.stream()
 				.filter(el -> el instanceof VariableElement)
 				.map(el-> (VariableElement)el )
-				.collect(Collectors.toList()), opt.inferDependencyVisibility)) {
+				.collect(Collectors.toList()), opt.getInferDependencyVisibility())) {
 		types.add(field.asType());
 	    }
 	}
@@ -846,7 +845,7 @@ public class ClassGraph {
 
 	// and finally check for explicitly imported classes (this
 	// assumes there are no unused imports...)
-	if (opt.useImports)
+	if (opt.isUseImports())
 	    types.addAll(Arrays.asList(importedClasses(c)));
 
 	// compute dependencies
@@ -866,7 +865,7 @@ public class ClassGraph {
 	    // check if source and destination are in the same package and if we are allowed
 	    // to infer dependencies between classes in the same package
 
-	    if(!opt.inferDepInPackage && c.getEnclosingElement().equals(((Element) type).getEnclosingElement()))
+	    if(!opt.isInferDepInPackage() && c.getEnclosingElement().equals(((Element) type).getEnclosingElement()))
 		continue;
 
 	    // if source and dest are not already linked, add a dependency
@@ -965,7 +964,7 @@ public class ClassGraph {
     public String classToUrl(String className) {
 		TypeElement classDoc = rootClassdocs.get(className);
 	if (classDoc != null) {
-	    String docRoot = optionProvider.getGlobalOptions().apiDocRoot;
+	    String docRoot = optionProvider.getGlobalOptions().getApiDocRoot();
 	    if (docRoot == null)
 		return null;
 	    return new StringBuilder(docRoot.length() + className.length() + 10).append(docRoot) //
@@ -989,12 +988,12 @@ public class ClassGraph {
 	Options opt = optionProvider.getGlobalOptions();
 	OutputStream os;
 
-	if (opt.outputFileName.equals("-"))
+	if (opt.getOutputFileName().equals("-"))
 	    os = System.out;
 	else {
 	    // prepare output file. Use the output file name as a full path unless the output
 	    // directory is specified
-	    File file = new File(opt.outputDirectory, opt.outputFileName);
+	    File file = new File(opt.getOutputDirectory(), opt.getOutputFileName());
 	    // make sure the output directory are there, otherwise create them
 	    if (file.getParentFile() != null
 		&& !file.getParentFile().exists())
@@ -1003,7 +1002,7 @@ public class ClassGraph {
 	}
 
 	// print prologue
-	w = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(os), opt.outputEncoding));
+	w = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(os), opt.getOutputEncoding()));
 	w.println(
 	    "#!/usr/local/bin/dot\n" +
 	    "#\n" +
@@ -1013,23 +1012,23 @@ public class ClassGraph {
 	    "#\n\n" +
 	    "digraph G {\n" +
 	    linePrefix + "graph [fontnames=\"svg\"]\n" +
-	    linePrefix + "edge [fontname=\"" + opt.edgeFontName +
-	    "\",fontsize=" + fmt(opt.edgeFontSize) +
-	    ",labelfontname=\"" + opt.edgeFontName +
-	    "\",labelfontsize=" + fmt(opt.edgeFontSize) +
-	    ",color=\"" + opt.edgeColor + "\"];\n" +
-	    linePrefix + "node [fontname=\"" + opt.nodeFontName +
-	    "\",fontcolor=\"" + opt.nodeFontColor +
-	    "\",fontsize=" + fmt(opt.nodeFontSize) +
+	    linePrefix + "edge [fontname=\"" + opt.getEdgeFontName() +
+	    "\",fontsize=" + fmt(opt.getEdgeFontSize()) +
+	    ",labelfontname=\"" + opt.getEdgeFontName() +
+	    "\",labelfontsize=" + fmt(opt.getEdgeFontSize()) +
+	    ",color=\"" + opt.getEdgeColor() + "\"];\n" +
+	    linePrefix + "node [fontname=\"" + opt.getNodeFontName() +
+	    "\",fontcolor=\"" + opt.getNodeFontColor() +
+	    "\",fontsize=" + fmt(opt.getNodeFontSize()) +
 	    ",shape=plaintext,margin=0,width=0,height=0];"
 	);
 
-	w.println(linePrefix + "nodesep=" + opt.nodeSep + ";");
-	w.println(linePrefix + "ranksep=" + opt.rankSep + ";");
-	if (opt.horizontal)
+	w.println(linePrefix + "nodesep=" + opt.getNodeSep() + ";");
+	w.println(linePrefix + "ranksep=" + opt.getRankSep() + ";");
+	if (opt.isHorizontal())
 	    w.println(linePrefix + "rankdir=LR;");
-	if (opt.bgColor != null)
-	    w.println(linePrefix + "bgcolor=\"" + opt.bgColor + "\";\n");
+	if (opt.getBgColor() != null)
+	    w.println(linePrefix + "bgcolor=\"" + opt.getBgColor() + "\";\n");
     }
 
     /** Dot epilogue */
@@ -1040,10 +1039,10 @@ public class ClassGraph {
     }
     
     private void externalTableStart(Options opt, String name, String url) {
-	String bgcolor = opt.nodeFillColor == null ? "" : (" bgcolor=\"" + opt.nodeFillColor + "\"");
+	String bgcolor = opt.getNodeFillColor() == null ? "" : (" bgcolor=\"" + opt.getNodeFillColor() + "\"");
 	String href = url == null ? "" : (" href=\"" + url + "\" target=\"_parent\"");
 	w.print("<<table title=\"" + name + "\" border=\"0\" cellborder=\"" + 
-	    opt.shape.cellBorder() + "\" cellspacing=\"0\" " +
+	    opt.getShape().cellBorder() + "\" cellspacing=\"0\" " +
 	    "cellpadding=\"2\"" + bgcolor + href + ">" + linePostfix);
     }
     
@@ -1060,7 +1059,7 @@ public class ClassGraph {
      * Start the first inner table of a class.
      */
     private void firstInnerTableStart(Options opt) {
-	w.print(linePrefix + linePrefix + "<tr>" + opt.shape.extraColumn() +
+	w.print(linePrefix + linePrefix + "<tr>" + opt.getShape().extraColumn() +
 		"<td><table border=\"0\" cellspacing=\"0\" " +
 		"cellpadding=\"1\">" + linePostfix);
     }
@@ -1074,7 +1073,7 @@ public class ClassGraph {
      */
     private void firstInnerTableEnd(Options opt) {
 	w.print(linePrefix + linePrefix + "</table></td>" +
-	    opt.shape.extraColumn() + "</tr>" + linePostfix);
+	    opt.getShape().extraColumn() + "</tr>" + linePostfix);
     }
 
     private void tableLine(Align align, String text) {

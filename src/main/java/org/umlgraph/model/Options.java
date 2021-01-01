@@ -56,49 +56,50 @@ public class Options implements Cloneable, OptionProvider {
     protected static final String DEFAULT_EXTERNAL_APIDOC = "http://docs.oracle.com/javase/7/docs/api/";
 	private DocletEnvironment environment;
     // instance fields
-	public List<Pattern> hidePatterns = new ArrayList<Pattern>();
-	public List<Pattern> includePatterns = new ArrayList<Pattern>();
-    public  boolean showQualified = false;
-	public boolean showQualifiedGenerics = false;
-	public boolean hideGenerics = false;
-	public boolean showAttributes = false;
-	public boolean showEnumerations = false;
-	public boolean showEnumConstants = false;
-	public boolean showOperations = false;
-	public boolean showConstructors = false;
-	public boolean showVisibility = false;
-	public boolean horizontal;
-	public boolean showType = false;
-	public boolean showComment = false;
-	public boolean autoSize = true;
-    String edgeFontName = Font.DEFAULT_FONT;
-    String edgeFontColor = "black";
-    String edgeColor = "black";
-    double edgeFontSize = 10;
-    String nodeFontName = Font.DEFAULT_FONT;
-    boolean nodeFontAbstractItalic = true;
-    String nodeFontColor = "black";
-    double nodeFontSize = 10;
-    public String nodeFillColor = null;
-    double nodeFontClassSize = -1;
-    String nodeFontClassName = null;
-    double nodeFontTagSize = -1;
-    String nodeFontTagName = null;
-    double nodeFontPackageSize = -1;
-    String nodeFontPackageName = null;
-    Shape shape = Shape.CLASS;
-    String bgColor = null;
-    public String outputFileName = "graph.dot";
-    public String outputEncoding = "ISO-8859-1"; // TODO: default to UTF-8 now?
-    Map<Pattern, String> apiDocMap = new HashMap<Pattern, String>();
-    String apiDocRoot = null;
-    boolean postfixPackage = false;
-    boolean useGuillemot = true;
-    boolean findViews = false;
-    String viewName = null;
-    double nodeSep = 0.25;
-    double rankSep = 0.5;
-    public String outputDirectory = null;
+	private List<Pattern> hidePatterns = new ArrayList<Pattern>();
+
+	private List<Pattern> includePatterns = new ArrayList<Pattern>();
+	private  boolean showQualified = false;
+	private boolean showQualifiedGenerics = false;
+	private boolean hideGenerics = false;
+	private boolean showAttributes = false;
+	private boolean showEnumerations = false;
+	private boolean showEnumConstants = false;
+	private boolean showOperations = false;
+	private boolean showConstructors = false;
+	private boolean showVisibility = false;
+	private boolean horizontal;
+	private boolean showType = false;
+	private boolean showComment = false;
+	private boolean autoSize = true;
+	private String edgeFontName = Font.DEFAULT_FONT;
+	private String edgeFontColor = "black";
+	private String edgeColor = "black";
+	private double edgeFontSize = 10;
+	private String nodeFontName = Font.DEFAULT_FONT;
+	private boolean nodeFontAbstractItalic = true;
+	private String nodeFontColor = "black";
+	private double nodeFontSize = 10;
+	private String nodeFillColor = null;
+	private double nodeFontClassSize = -1;
+	private String nodeFontClassName = null;
+	private double nodeFontTagSize = -1;
+	private String nodeFontTagName = null;
+	private double nodeFontPackageSize = -1;
+	private String nodeFontPackageName = null;
+	private Shape shape = Shape.CLASS;
+	private String bgColor = null;
+	private String outputFileName = "graph.dot";
+	private String outputEncoding = "ISO-8859-1"; // TODO: default to UTF-8 now?
+	private Map<Pattern, String> apiDocMap = new HashMap<Pattern, String>();
+	private String apiDocRoot = null;
+	private boolean postfixPackage = false;
+	private boolean useGuillemot = true;
+	private boolean findViews = false;
+	private String viewName = null;
+	private double nodeSep = 0.25;
+	private double rankSep = 0.5;
+	private  String outputDirectory = null;
     /*
      * Numeric values are preferable to symbolic here.
      * Symbolic reportedly fail on MacOSX, and also are
@@ -112,22 +113,22 @@ public class Options implements Cloneable, OptionProvider {
 	public boolean inferDependencies = false;
 	public boolean collapsibleDiagrams = false;
     public RelationPattern contextRelationPattern = new RelationPattern(RelationDirection.BOTH);
-    boolean useImports = false;
-    Visibility inferDependencyVisibility = Visibility.PRIVATE;
-    boolean inferDepInPackage = false;
-    RelationType inferRelationshipType = RelationType.NAVASSOC;
+	private boolean useImports = false;
+	private Visibility inferDependencyVisibility = Visibility.PRIVATE;
+	private boolean inferDepInPackage = false;
+	private RelationType inferRelationshipType = RelationType.NAVASSOC;
     private List<Pattern> collPackages = new ArrayList<Pattern>();
-    boolean compact = false;
-    boolean hidePrivateInner = false;
+	private boolean compact = false;
+	private boolean hidePrivateInner = false;
     // internal option, used by UMLDoc to generate relative links between classes
-	public boolean relativeLinksForSourcePackages = false;
+	private boolean relativeLinksForSourcePackages = false;
     // internal option, used by UMLDoc to force strict matching on the class names
     // and avoid problems with packages in the template declaration making UmlGraph hide 
     // classes outside of them (for example, class gr.spinellis.Foo<T extends java.io.Serializable>
     // would have been hidden by the hide pattern "java.*"
     // TODO: consider making this standard behaviour
-	public boolean strictMatching = false;
-    public String dotExecutable = "dot";
+	private boolean strictMatching = false;
+	private String dotExecutable = "dot";
 
     public Options(DocletEnvironment environment) {
     	this.environment = environment;
@@ -697,5 +698,483 @@ public class Options implements Cloneable, OptionProvider {
 	}
 	return sb.toString();
     }
+	public DocletEnvironment getEnvironment() {
+		return environment;
+	}
 
+	public void setEnvironment(DocletEnvironment environment) {
+		this.environment = environment;
+	}
+
+	public List<Pattern> getHidePatterns() {
+		return hidePatterns;
+	}
+
+	public void setHidePatterns(List<Pattern> hidePatterns) {
+		this.hidePatterns = hidePatterns;
+	}
+
+	public List<Pattern> getIncludePatterns() {
+		return includePatterns;
+	}
+
+	public void setIncludePatterns(List<Pattern> includePatterns) {
+		this.includePatterns = includePatterns;
+	}
+
+	public boolean isShowQualified() {
+		return showQualified;
+	}
+
+	public void setShowQualified(boolean showQualified) {
+		this.showQualified = showQualified;
+	}
+
+	public boolean isShowQualifiedGenerics() {
+		return showQualifiedGenerics;
+	}
+
+	public void setShowQualifiedGenerics(boolean showQualifiedGenerics) {
+		this.showQualifiedGenerics = showQualifiedGenerics;
+	}
+
+	public boolean isHideGenerics() {
+		return hideGenerics;
+	}
+
+	public void setHideGenerics(boolean hideGenerics) {
+		this.hideGenerics = hideGenerics;
+	}
+
+	public boolean isShowAttributes() {
+		return showAttributes;
+	}
+
+	public void setShowAttributes(boolean showAttributes) {
+		this.showAttributes = showAttributes;
+	}
+
+	public boolean isShowEnumerations() {
+		return showEnumerations;
+	}
+
+	public void setShowEnumerations(boolean showEnumerations) {
+		this.showEnumerations = showEnumerations;
+	}
+
+	public boolean isShowEnumConstants() {
+		return showEnumConstants;
+	}
+
+	public void setShowEnumConstants(boolean showEnumConstants) {
+		this.showEnumConstants = showEnumConstants;
+	}
+
+	public boolean isShowOperations() {
+		return showOperations;
+	}
+
+	public void setShowOperations(boolean showOperations) {
+		this.showOperations = showOperations;
+	}
+
+	public boolean isShowConstructors() {
+		return showConstructors;
+	}
+
+	public void setShowConstructors(boolean showConstructors) {
+		this.showConstructors = showConstructors;
+	}
+
+	public boolean isShowVisibility() {
+		return showVisibility;
+	}
+
+	public void setShowVisibility(boolean showVisibility) {
+		this.showVisibility = showVisibility;
+	}
+
+	public boolean isHorizontal() {
+		return horizontal;
+	}
+
+	public void setHorizontal(boolean horizontal) {
+		this.horizontal = horizontal;
+	}
+
+	public boolean isShowType() {
+		return showType;
+	}
+
+	public void setShowType(boolean showType) {
+		this.showType = showType;
+	}
+
+	public boolean isShowComment() {
+		return showComment;
+	}
+
+	public void setShowComment(boolean showComment) {
+		this.showComment = showComment;
+	}
+
+	public boolean isAutoSize() {
+		return autoSize;
+	}
+
+	public void setAutoSize(boolean autoSize) {
+		this.autoSize = autoSize;
+	}
+
+	public String getEdgeFontName() {
+		return edgeFontName;
+	}
+
+	public void setEdgeFontName(String edgeFontName) {
+		this.edgeFontName = edgeFontName;
+	}
+
+	public String getEdgeFontColor() {
+		return edgeFontColor;
+	}
+
+	public void setEdgeFontColor(String edgeFontColor) {
+		this.edgeFontColor = edgeFontColor;
+	}
+
+	public String getEdgeColor() {
+		return edgeColor;
+	}
+
+	public void setEdgeColor(String edgeColor) {
+		this.edgeColor = edgeColor;
+	}
+
+	public double getEdgeFontSize() {
+		return edgeFontSize;
+	}
+
+	public void setEdgeFontSize(double edgeFontSize) {
+		this.edgeFontSize = edgeFontSize;
+	}
+
+	public String getNodeFontName() {
+		return nodeFontName;
+	}
+
+	public void setNodeFontName(String nodeFontName) {
+		this.nodeFontName = nodeFontName;
+	}
+
+	public boolean isNodeFontAbstractItalic() {
+		return nodeFontAbstractItalic;
+	}
+
+	public void setNodeFontAbstractItalic(boolean nodeFontAbstractItalic) {
+		this.nodeFontAbstractItalic = nodeFontAbstractItalic;
+	}
+
+	public String getNodeFontColor() {
+		return nodeFontColor;
+	}
+
+	public void setNodeFontColor(String nodeFontColor) {
+		this.nodeFontColor = nodeFontColor;
+	}
+
+	public double getNodeFontSize() {
+		return nodeFontSize;
+	}
+
+	public void setNodeFontSize(double nodeFontSize) {
+		this.nodeFontSize = nodeFontSize;
+	}
+
+	public String getNodeFillColor() {
+		return nodeFillColor;
+	}
+
+	public void setNodeFillColor(String nodeFillColor) {
+		this.nodeFillColor = nodeFillColor;
+	}
+
+	public double getNodeFontClassSize() {
+		return nodeFontClassSize;
+	}
+
+	public void setNodeFontClassSize(double nodeFontClassSize) {
+		this.nodeFontClassSize = nodeFontClassSize;
+	}
+
+	public String getNodeFontClassName() {
+		return nodeFontClassName;
+	}
+
+	public void setNodeFontClassName(String nodeFontClassName) {
+		this.nodeFontClassName = nodeFontClassName;
+	}
+
+	public double getNodeFontTagSize() {
+		return nodeFontTagSize;
+	}
+
+	public void setNodeFontTagSize(double nodeFontTagSize) {
+		this.nodeFontTagSize = nodeFontTagSize;
+	}
+
+	public String getNodeFontTagName() {
+		return nodeFontTagName;
+	}
+
+	public void setNodeFontTagName(String nodeFontTagName) {
+		this.nodeFontTagName = nodeFontTagName;
+	}
+
+	public double getNodeFontPackageSize() {
+		return nodeFontPackageSize;
+	}
+
+	public void setNodeFontPackageSize(double nodeFontPackageSize) {
+		this.nodeFontPackageSize = nodeFontPackageSize;
+	}
+
+	public String getNodeFontPackageName() {
+		return nodeFontPackageName;
+	}
+
+	public void setNodeFontPackageName(String nodeFontPackageName) {
+		this.nodeFontPackageName = nodeFontPackageName;
+	}
+
+	public Shape getShape() {
+		return shape;
+	}
+
+	public void setShape(Shape shape) {
+		this.shape = shape;
+	}
+
+	public String getBgColor() {
+		return bgColor;
+	}
+
+	public void setBgColor(String bgColor) {
+		this.bgColor = bgColor;
+	}
+
+	public String getOutputFileName() {
+		return outputFileName;
+	}
+
+	public void setOutputFileName(String outputFileName) {
+		this.outputFileName = outputFileName;
+	}
+
+	public String getOutputEncoding() {
+		return outputEncoding;
+	}
+
+	public void setOutputEncoding(String outputEncoding) {
+		this.outputEncoding = outputEncoding;
+	}
+
+	public Map<Pattern, String> getApiDocMap() {
+		return apiDocMap;
+	}
+
+	public void setApiDocMap(Map<Pattern, String> apiDocMap) {
+		this.apiDocMap = apiDocMap;
+	}
+
+	public String getApiDocRoot() {
+		return apiDocRoot;
+	}
+
+	public void setApiDocRoot(String apiDocRoot) {
+		this.apiDocRoot = apiDocRoot;
+	}
+
+	public boolean isPostfixPackage() {
+		return postfixPackage;
+	}
+
+	public void setPostfixPackage(boolean postfixPackage) {
+		this.postfixPackage = postfixPackage;
+	}
+
+	public boolean isUseGuillemot() {
+		return useGuillemot;
+	}
+
+	public void setUseGuillemot(boolean useGuillemot) {
+		this.useGuillemot = useGuillemot;
+	}
+
+	public boolean isFindViews() {
+		return findViews;
+	}
+
+	public void setFindViews(boolean findViews) {
+		this.findViews = findViews;
+	}
+
+	public String getViewName() {
+		return viewName;
+	}
+
+	public void setViewName(String viewName) {
+		this.viewName = viewName;
+	}
+
+	public double getNodeSep() {
+		return nodeSep;
+	}
+
+	public void setNodeSep(double nodeSep) {
+		this.nodeSep = nodeSep;
+	}
+
+	public double getRankSep() {
+		return rankSep;
+	}
+
+	public void setRankSep(double rankSep) {
+		this.rankSep = rankSep;
+	}
+
+	public String getOutputDirectory() {
+		return outputDirectory;
+	}
+
+	public void setOutputDirectory(String outputDirectory) {
+		this.outputDirectory = outputDirectory;
+	}
+
+	public String getGuilOpen() {
+		return guilOpen;
+	}
+
+	public void setGuilOpen(String guilOpen) {
+		this.guilOpen = guilOpen;
+	}
+
+	public String getGuilClose() {
+		return guilClose;
+	}
+
+	public void setGuilClose(String guilClose) {
+		this.guilClose = guilClose;
+	}
+
+	public boolean isInferRelationships() {
+		return inferRelationships;
+	}
+
+	public void setInferRelationships(boolean inferRelationships) {
+		this.inferRelationships = inferRelationships;
+	}
+
+	public boolean isInferDependencies() {
+		return inferDependencies;
+	}
+
+	public void setInferDependencies(boolean inferDependencies) {
+		this.inferDependencies = inferDependencies;
+	}
+
+	public boolean isCollapsibleDiagrams() {
+		return collapsibleDiagrams;
+	}
+
+	public void setCollapsibleDiagrams(boolean collapsibleDiagrams) {
+		this.collapsibleDiagrams = collapsibleDiagrams;
+	}
+
+	public RelationPattern getContextRelationPattern() {
+		return contextRelationPattern;
+	}
+
+	public void setContextRelationPattern(RelationPattern contextRelationPattern) {
+		this.contextRelationPattern = contextRelationPattern;
+	}
+
+	public boolean isUseImports() {
+		return useImports;
+	}
+
+	public void setUseImports(boolean useImports) {
+		this.useImports = useImports;
+	}
+
+	public Visibility getInferDependencyVisibility() {
+		return inferDependencyVisibility;
+	}
+
+	public void setInferDependencyVisibility(Visibility inferDependencyVisibility) {
+		this.inferDependencyVisibility = inferDependencyVisibility;
+	}
+
+	public boolean isInferDepInPackage() {
+		return inferDepInPackage;
+	}
+
+	public void setInferDepInPackage(boolean inferDepInPackage) {
+		this.inferDepInPackage = inferDepInPackage;
+	}
+
+	public RelationType getInferRelationshipType() {
+		return inferRelationshipType;
+	}
+
+	public void setInferRelationshipType(RelationType inferRelationshipType) {
+		this.inferRelationshipType = inferRelationshipType;
+	}
+
+	public List<Pattern> getCollPackages() {
+		return collPackages;
+	}
+
+	public void setCollPackages(List<Pattern> collPackages) {
+		this.collPackages = collPackages;
+	}
+
+	public boolean isCompact() {
+		return compact;
+	}
+
+	public void setCompact(boolean compact) {
+		this.compact = compact;
+	}
+
+	public boolean isHidePrivateInner() {
+		return hidePrivateInner;
+	}
+
+	public void setHidePrivateInner(boolean hidePrivateInner) {
+		this.hidePrivateInner = hidePrivateInner;
+	}
+
+	public boolean isRelativeLinksForSourcePackages() {
+		return relativeLinksForSourcePackages;
+	}
+
+	public void setRelativeLinksForSourcePackages(boolean relativeLinksForSourcePackages) {
+		this.relativeLinksForSourcePackages = relativeLinksForSourcePackages;
+	}
+
+	public boolean isStrictMatching() {
+		return strictMatching;
+	}
+
+	public void setStrictMatching(boolean strictMatching) {
+		this.strictMatching = strictMatching;
+	}
+
+	public String getDotExecutable() {
+		return dotExecutable;
+	}
+
+	public void setDotExecutable(String dotExecutable) {
+		this.dotExecutable = dotExecutable;
+	}
 }

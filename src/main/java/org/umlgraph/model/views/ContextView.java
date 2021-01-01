@@ -46,7 +46,7 @@ public class ContextView implements OptionProvider {
 	this.globalOptions = parent.getGlobalOptions();
 	
 	this.packageOptions = parent.getGlobalOptions();  
-	this.packageOptions.showQualified = false;
+	this.packageOptions.setShowQualified(false);
 
 	this.myGlobalOptions = parent.getGlobalOptions();
 	this.myGlobalOptions.setOption(new String[] { "output", outputPath });
@@ -56,8 +56,8 @@ public class ContextView implements OptionProvider {
 	this.hideOptions.setOption(HIDE_OPTIONS);
 
 	this.centerOptions = parent.getGlobalOptions();
-	this.centerOptions.nodeFillColor = "lemonChiffon";
-	this.centerOptions.showQualified = false;
+	this.centerOptions.setNodeFillColor("lemonChiffon");
+	this.centerOptions.setShowQualified(false);
 
 	this.matcher = new ContextMatcher(root, Pattern.compile(Pattern.quote(cd.toString())),
 		myGlobalOptions, true);
@@ -117,7 +117,7 @@ public class ContextView implements OptionProvider {
 		|| !(matcher.matches(cd) || opt.matchesIncludeExpression(cd.getQualifiedName().toString())))
 	    opt.setOption(HIDE_OPTIONS);
 	if (cd.equals(this.cd))
-	    opt.nodeFillColor = "lemonChiffon";
+	    opt.setNodeFillColor("lemonChiffon");
     }
 
     public void overrideForClass(Options opt, String className) {
